@@ -7,8 +7,8 @@
     <ProjectGuid>{6D886E75-850D-4168-BC22-1A4CFB9CA1C3}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Марка_пакета_труб</RootNamespace>
-    <AssemblyName>Марка_пакета_труб</AssemblyName>
+    <RootNamespace>Последовательное_подключение_светильников</RootNamespace>
+    <AssemblyName>Последовательное_подключение_светильников</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
