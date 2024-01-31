@@ -23,15 +23,17 @@ namespace Последовательное_подключение_светиль
             UIDocument uidoc = uiapp.ActiveUIDocument;
             Document doc = uidoc.Document;
 
-            List<FamilyInstance> luminaires = new List<FamilyInstance>();
+            FamilyInstance luminaire=null;
+            List<FamilyInstance> luminaires=new List<FamilyInstance>();
 
             try
             {
                 do
                 {
-                    luminaires = PickLuminaires(commandData);
+                    luminaire = PickLuminaire(commandData);
+                    luminaires.Add(luminaire);
 
-                } while (luminaires.Count < 2);
+                } while (luminaires!=null);
             }
             catch (Exception)
             { }
@@ -43,12 +45,11 @@ namespace Последовательное_подключение_светиль
                 return Result.Succeeded;
             }
 
-            luminaires.Reverse();
 
             List<ElementId> luminairesIdList = new List<ElementId>();
-            foreach (var luminaire in luminaires)
+            foreach (var lum in luminaires)
             {
-                luminairesIdList.Add(luminaire.Id);
+                luminairesIdList.Add(lum.Id);
             }
 
             List<ElectricalSystem> electricalSystemList = new List<ElectricalSystem>();
@@ -60,7 +61,7 @@ namespace Последовательное_подключение_светиль
                 {
                     FamilyInstance el = doc.GetElement(luminairesId) as FamilyInstance;
 
-                    if (!el.MEPModel.ElectricalSystems.IsEmpty)
+                    if (el.MEPModel.ElectricalSystems != null)//Проверка  наличие цепи
                     {
                         foreach (ElectricalSystem es in el.MEPModel.ElectricalSystems)
                         {
@@ -116,6 +117,27 @@ namespace Последовательное_подключение_светиль
             }
 
             return elementList;
+        }
+
+        public static FamilyInstance PickLuminaire(ExternalCommandData commandData, string message = "Выберите светильники")
+        {
+            UIApplication uiapp = commandData.Application;
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            Document doc = uidoc.Document;
+            Reference selEl = null;
+
+            FamilyInstance fiElement= null;
+
+            selEl = uidoc.Selection.PickObject(ObjectType.Element, "Выберете светильник");
+            if (selEl != null)
+            {
+                Element element = doc.GetElement(selEl);
+                if (element.Category.Name == "Электрооборудование")
+                {
+                    fiElement = (FamilyInstance)element;
+                }
+            }
+            return fiElement;
         }
     }
 }
