@@ -23,7 +23,7 @@ namespace Последовательное_подключение_светиль
             UIDocument uidoc = uiapp.ActiveUIDocument;
             Document doc = uidoc.Document;
 
-            List<FamilyInstance> luminaires=new List<FamilyInstance>();
+            List<FamilyInstance> luminaires = new List<FamilyInstance>();
 
             try
             {
@@ -31,11 +31,11 @@ namespace Последовательное_подключение_светиль
                 {
                     luminaires = PickLuminaires(commandData);
 
-                } while (luminaires.Count > 1);
+                } while (luminaires.Count < 2);
             }
             catch (Exception)
             { }
-            
+
 
             if (luminaires.Count < 2)
             {
@@ -51,21 +51,26 @@ namespace Последовательное_подключение_светиль
                 luminairesIdList.Add(luminaire.Id);
             }
 
-            List<ElectricalSystem> electricalSystemList=new List<ElectricalSystem>();
+            List<ElectricalSystem> electricalSystemList = new List<ElectricalSystem>();
 
             using (Transaction ts = new Transaction(doc, "Создание цепи и подключение к панели"))
             {
                 ts.Start();
                 foreach (var luminairesId in luminairesIdList)
                 {
-                    FamilyInstance el=doc.GetElement(luminairesId) as FamilyInstance;
+                    FamilyInstance el = doc.GetElement(luminairesId) as FamilyInstance;
 
-                    if (el.MEPModel.GetElectricalSystems().Any())
+                    if (!el.MEPModel.ElectricalSystems.IsEmpty)
                     {
-                        electricalSystemList.Add(el.MEPModel.GetElectricalSystems().FirstOrDefault());
+                        foreach (ElectricalSystem es in el.MEPModel.ElectricalSystems)
+                        {
+                            electricalSystemList.Add(es);
+                            break;
+                        }
                         continue;
+
                     }
-                    List<ElementId> luminairesIdList_= new List<ElementId>();
+                    List<ElementId> luminairesIdList_ = new List<ElementId>();
                     luminairesIdList_.Clear();
                     luminairesIdList_.Add(luminairesId);
                     ElectricalSystem electricalSystem = ElectricalSystem.Create(doc, luminairesIdList_, ElectricalSystemType.PowerCircuit);
@@ -74,10 +79,14 @@ namespace Последовательное_подключение_светиль
                 int j = 0;
                 for (int i = 1; i < electricalSystemList.Count; i++)
                 {
-                    Element e= electricalSystemList[i].BaseEquipment;
-                    ElementSet elementSet = new ElementSet();
-                    elementSet.Insert(e);
-                    electricalSystemList[i].RemoveFromCircuit(elementSet);
+
+                    if (electricalSystemList[i].BaseEquipment != null)
+                    {
+                        Element e = electricalSystemList[i].BaseEquipment;
+                        ElementSet elementSet = new ElementSet();
+                        elementSet.Insert(e);
+                        electricalSystemList[i].RemoveFromCircuit(elementSet);
+                    }
                     electricalSystemList[i].SelectPanel(luminaires[j]);
                     j++;
                 }
